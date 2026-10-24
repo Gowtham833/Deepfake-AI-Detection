@@ -1,0 +1,41 @@
+# ============================================================
+# Requirements — Deepfake Detection Framework
+# ============================================================
+# Python >= 3.10 required
+# Install: pip install -r requirements.txt
+# ============================================================
+
+# --- Deep Learning ---
+torch>=2.6.0
+torchvision>=0.21.0
+
+# --- Computer Vision ---
+opencv-python>=4.10.0
+
+# --- Face Detection ---
+facenet-pytorch>=2.5.3
+
+# --- Data Processing ---
+numpy>=2.1.0
+pandas>=2.2.0
+scikit-learn>=1.6.0
+
+# --- Visualization ---
+matplotlib>=3.10.0
+
+# --- Configuration ---
+PyYAML>=6.0
+
+# --- Backend ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.7
+
+# --- Testing ---
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0
+
+# --- Utilities ---
+Pillow>=11.0.0
+tqdm>=4.67.0

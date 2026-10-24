@@ -1,0 +1,83 @@
+# ============================================================
+# .gitignore — Deepfake Detection Project
+# ============================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# --- Virtual Environments ---
+venv/
+env/
+.venv/
+.env
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# --- Testing ---
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- Dataset & Caches ---
+data/real/
+data/fake/
+data/frames/
+data/manifest.csv
+data/*.csv
+data/*.npz
+data/debug_uploads/
+data/debug_1157/
+data/sample_frames/
+*.png
+*.jpg
+!static/**/*.png
+!static/**/*.jpg
+!docs/**/*.png
+!docs/**/*.jpg
+
+# --- Model Checkpoints ---
+models/*.pth
+models/*.pt
+models/*.ckpt
+!models/best_model.pth
+!deepfake_best_model.pth
+
+# --- Experiment Artifacts ---
+reports/experiments/*/
+
+# --- Temporary Uploads ---
+uploads/
+tmp/
+temp/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs ---
+*.log
+
+# --- Keep files (allow empty dirs) ---
+!data/.gitkeep
+!models/.gitkeep
+!reports/experiments/.gitkeep

@@ -1,0 +1,173 @@
+# ============================================================
+# Deepfake Detection - Central Configuration
+# ============================================================
+# All paths are relative to project root unless absolute.
+# Machine-specific paths should be overridden via environment
+# variables or a local .env file.
+# ============================================================
+
+# --- Dataset Configuration ---
+dataset:
+  data_root: "data"
+  real_dir: "real"
+  fake_dir: "fake"
+  # Video-source directories (for Celeb-DF v2 frame extraction)
+  video_real_dir: "Celeb-real"
+  video_fake_dir: "Celeb-synthesis"
+  # Output directory for extracted frames
+  frames_output_dir: "data/frames"
+  # Manifest path
+  manifest_path: "data/manifest.csv"
+  # Supported image extensions
+  image_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"]
+  # Supported video extensions
+  video_extensions: [".mp4", ".avi", ".mov", ".mkv"]
+
+# --- Frame Extraction ---
+frame_extraction:
+  fps: 1
+  max_frames_per_video: 30
+  output_format: "jpg"
+  quality: 95
+
+# --- Face Detection ---
+face_detection:
+  detector: "mtcnn"
+  min_face_size: 40
+  confidence_threshold: 0.9
+  # Selection strategy: "largest" or "most_confident"
+  selection_strategy: "largest"
+  # Bounding-box margin as fraction of box dimension
+  margin: 0.2
+
+# --- Image Preprocessing ---
+preprocessing:
+  image_size: 224
+  # These are the EfficientNet-B0 ImageNet normalization values
+  # They are overridden at runtime by the actual weight transforms
+  normalize_mean: [0.485, 0.456, 0.406]
+  normalize_std: [0.229, 0.224, 0.225]
+
+# --- Augmentation (training only) ---
+augmentation:
+  enabled: true
+  horizontal_flip: true
+  horizontal_flip_prob: 0.5
+  rotation_degrees: 10
+  brightness: 0.1
+  contrast: 0.1
+  saturation: 0.05
+
+# --- Data Splitting ---
+splitting:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 42
+  # group_column used for group-aware splitting (e.g., "source_video")
+  group_column: "source_video"
+
+# --- Model Configuration ---
+model:
+  architecture: "efficientnet_b0"
+  pretrained: true
+  num_classes: 1  # Single logit for binary classification
+  dropout_rate: 0.2
+  # freeze_backbone: Stage 1 (true), Stage 2 (false)
+  freeze_backbone: true
+
+# --- Class Mapping ---
+classes:
+  real: 0
+  deepfake: 1
+  names: ["REAL", "DEEPFAKE"]
+
+# --- Training Configuration ---
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  # Scheduler: "step", "cosine", "plateau", or "none"
+  scheduler: "plateau"
+  scheduler_patience: 3
+  scheduler_factor: 0.1
+  # Early stopping
+  early_stopping: true
+  early_stopping_patience: 5
+  early_stopping_min_delta: 0.001
+  # Gradient clipping
+  gradient_clip_max_norm: 1.0
+  # Mixed precision
+  mixed_precision: true
+  # Reproducibility
+  random_seed: 42
+  # Fine-tuning (Stage 2)
+  finetune_learning_rate: 0.0001
+  finetune_epochs: 10
+  # Unfreeze from this layer index onward (0 = all)
+  finetune_unfreeze_from: 5
+
+# --- Threshold ---
+threshold:
+  default: 0.5
+  # Method for optimal threshold: "f1", "balanced_accuracy", "youden"
+  selection_method: "f1"
+
+# --- Checkpointing ---
+checkpoint:
+  save_dir: "models"
+  filename: "best_model.pth"
+  save_optimizer: true
+  save_scheduler: true
+  version: "1.0"
+
+# --- Grad-CAM ---
+gradcam:
+  # Target layer name (resolved programmatically if "auto")
+  target_layer: "auto"
+  # Colormap for heatmap visualization
+  colormap: "jet"
+  # Overlay alpha blending
+  overlay_alpha: 0.5
+
+# --- Experiment ---
+experiment:
+  output_dir: "reports/experiments"
+  save_plots: true
+  save_history: true
+  save_config: true
+
+# --- API Configuration ---
+api:
+  host: "0.0.0.0"
+  port: 8000
+  # Maximum upload size in bytes (10 MB)
+  max_upload_size: 10485760
+  # Allowed MIME types
+  allowed_mime_types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/bmp"
+    - "image/tiff"
+    - "image/webp"
+  # Allowed extensions
+  allowed_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"]
+  # Maximum image dimension
+  max_image_dimension: 4096
+  # Maximum video upload size in bytes (100 MB)
+  max_video_upload_size: 104857600
+  # Allowed video MIME types
+  allowed_video_mime_types:
+    - "video/mp4"
+    - "video/avi"
+    - "video/x-msvideo"
+    - "video/quicktime"
+    - "video/x-matroska"
+    - "video/webm"
+  # Allowed video extensions
+  allowed_video_extensions: [".mp4", ".avi", ".mov", ".mkv", ".webm"]
+  # Video analysis settings
+  video_extraction_fps: 1.0
+  video_max_frames: 30
