@@ -439,6 +439,3 @@ This application is developed for educational, research, and defensive media ver
 
 ---
 
-## License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
