@@ -4,9 +4,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org)
-[![Accuracy](https://img.shields.io/badge/Image%20Accuracy-99.43%25-brightgreen.svg)]()
-[![Video Accuracy](https://img.shields.io/badge/Video%20Accuracy-100%25-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 
 An end-to-end, enterprise-grade deepfake detection platform capable of identifying manipulated images and synthetic video media in real time. Powered by an **EfficientNet-B0** deep neural network, **MTCNN face detection and spatial alignment**, **Grad-CAM visual explainability**, and a high-performance **FastAPI asynchronous backend**.
 
