@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // API Base URL: defaults to empty string for same-origin requests (e.g. local or all-in-one Railway),
+    // or can be overridden via window.API_BASE_URL when frontend is hosted separately on Vercel.
+    const API_BASE_URL = (window.API_BASE_URL || '').replace(/\/+$/, '');
+
     // ==================== IMAGE MODE ELEMENTS ====================
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
@@ -131,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('file', currentFile);
 
         try {
-            const response = await fetch('/api/predict-and-explain', {
+            const response = await fetch(`${API_BASE_URL}/api/predict-and-explain`, {
                 method: 'POST',
                 body: formData
             });
@@ -278,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('file', currentVideoFile);
 
         try {
-            const response = await fetch('/api/predict-video', {
+            const response = await fetch(`${API_BASE_URL}/api/predict-video`, {
                 method: 'POST',
                 body: formData
             });
@@ -417,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function checkHealth() {
         try {
-            const response = await fetch('/api/health');
+            const response = await fetch(`${API_BASE_URL}/api/health`);
             const data = await response.json();
             
             if (!data.model_loaded) {

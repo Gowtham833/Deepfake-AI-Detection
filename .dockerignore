@@ -1,0 +1,16 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+data/real
+data/fake
+data/frames
+data/*.csv
+reports/experiments
+notebooks
+tests
+frontend
+.DS_Store
+*.log

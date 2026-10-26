@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Detection System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="container">
+            <h1>Deepfake Detection System</h1>
+            <p class="subtitle">EfficientNet + Grad-CAM Explainability</p>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <!-- Status / Error Messages -->
+        <div id="message-container" class="message hidden"></div>
+        <div id="system-status" class="system-status hidden">
+            <span class="status-icon">⚠️</span>
+            <span id="system-status-msg">Model is not loaded. Predictions will fail.</span>
+        </div>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="tab-btn active" data-mode="image" onclick="switchMode('image')">
+                🖼️ Image Analysis
+            </button>
+            <button class="tab-btn" data-mode="video" onclick="switchMode('video')">
+                🎥 Video Analysis
+            </button>
+        </div>
+
+        <!-- ==================== IMAGE MODE ==================== -->
+        <div id="image-mode" class="mode-content active">
+            <!-- Upload Section -->
+            <section id="upload-section" class="card">
+                <h2>Upload Image</h2>
+                <p>Select or drag & drop a face image to analyze for manipulation.</p>
+                
+                <div id="drop-zone" class="drop-zone">
+                    <div class="drop-zone-content">
+                        <span class="icon">📁</span>
+                        <h3>Drag & Drop</h3>
+                        <p>or</p>
+                        <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" class="hidden">
+                        <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">Select File</button>
+                        <p class="format-info">Supported formats: JPG, PNG, WEBP (Max 10MB)</p>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div id="preview-container" class="hidden">
+                    <div class="preview-header">
+                        <h3>Selected Image</h3>
+                        <button id="btn-reset" class="btn btn-secondary btn-sm">Change Image</button>
+                    </div>
+                    <img id="image-preview" src="" alt="Preview">
+                    <div class="actions">
+                        <button id="btn-analyze" class="btn btn-primary btn-large">Analyze Image</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <section id="loading-section" class="card hidden">
+                <div class="loader-container">
+                    <div class="spinner"></div>
+                    <h3>Analyzing Image...</h3>
+                    <p>Detecting face, running inference, and generating explanations.</p>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="hidden">
+                <!-- Prediction Card -->
+                <div class="card result-card">
+                    <h2>Detection Result</h2>
+                    
+                    <div class="prediction-banner" id="prediction-banner">
+                        <h1 id="prediction-label">UNKNOWN</h1>
+                    </div>
+
+                    <div class="probabilities-container">
+                        <div class="prob-row">
+                            <span>REAL Probability</span>
+                            <span id="prob-real-text">0%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div id="prob-real-bar" class="prob-bar prob-bar-real"></div>
+                        </div>
+
+                        <div class="prob-row">
+                            <span>DEEPFAKE Probability</span>
+                            <span id="prob-fake-text">0%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div id="prob-fake-bar" class="prob-bar prob-bar-fake"></div>
+                        </div>
+                    </div>
+
+                    <div class="meta-info">
+                        <p><strong>Model:</strong> <span id="meta-model">EfficientNet-B0</span></p>
+                        <p><strong>Faces Detected:</strong> <span id="meta-faces">0</span></p>
+                        <p><strong>Threshold:</strong> <span id="meta-threshold">0.5</span></p>
+                    </div>
+                    
+                    <div id="warnings-container" class="warnings hidden"></div>
+                </div>
+
+                <!-- Explainability Card -->
+                <div class="card explain-card">
+                    <h2>Explainability (Grad-CAM)</h2>
+                    <div class="explain-note">
+                        <p>Grad-CAM highlights regions that contributed to the model prediction. It does not prove manipulation, but shows where the network focused its attention.</p>
+                    </div>
+
+                    <div class="visualizations-grid">
+                        <div class="vis-item">
+                            <h4>Processed Face</h4>
+                            <div class="img-wrapper">
+                                <img id="img-face" src="" alt="Processed Face">
+                            </div>
+                        </div>
+                        <div class="vis-item">
+                            <h4>Heatmap</h4>
+                            <div class="img-wrapper">
+                                <img id="img-heatmap" src="" alt="Grad-CAM Heatmap">
+                            </div>
+                        </div>
+                        <div class="vis-item">
+                            <h4>Overlay</h4>
+                            <div class="img-wrapper">
+                                <img id="img-overlay" src="" alt="Grad-CAM Overlay">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ==================== VIDEO MODE ==================== -->
+        <div id="video-mode" class="mode-content">
+            <!-- Video Upload Section -->
+            <section id="video-upload-section" class="card">
+                <h2>Upload Video</h2>
+                <p>Select or drag & drop a video to analyze for deepfake manipulation.</p>
+                
+                <div id="video-drop-zone" class="drop-zone">
+                    <div class="drop-zone-content">
+                        <span class="icon">🎬</span>
+                        <h3>Drag & Drop Video</h3>
+                        <p>or</p>
+                        <input type="file" id="video-file-input" accept="video/mp4,video/avi,video/quicktime,video/x-matroska,video/webm" class="hidden">
+                        <button class="btn btn-primary" onclick="document.getElementById('video-file-input').click()">Select Video</button>
+                        <p class="format-info">Supported formats: MP4, AVI, MOV, MKV, WEBM (Max 100MB)</p>
+                    </div>
+                </div>
+
+                <!-- Video Preview -->
+                <div id="video-preview-container" class="hidden">
+                    <div class="preview-header">
+                        <h3>Selected Video</h3>
+                        <button id="btn-video-reset" class="btn btn-secondary btn-sm">Change Video</button>
+                    </div>
+                    <video id="video-preview" controls style="max-width: 100%; max-height: 400px; border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 1rem;"></video>
+                    <div class="actions">
+                        <button id="btn-video-analyze" class="btn btn-primary btn-large">Analyze Video</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Video Loading State -->
+            <section id="video-loading-section" class="card hidden">
+                <div class="loader-container">
+                    <div class="spinner"></div>
+                    <h3>Analyzing Video...</h3>
+                    <p>Extracting frames, detecting faces, and running inference on each frame. This may take a moment.</p>
+                    <div id="video-progress-bar" class="progress-bar-container" style="margin-top: 1rem;">
+                        <div class="progress-bar-track">
+                            <div id="video-progress-fill" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Video Results Section -->
+            <section id="video-results-section" class="hidden">
+                <!-- Overall Prediction Card -->
+                <div class="card result-card">
+                    <h2>Video Detection Result</h2>
+                    
+                    <div class="prediction-banner" id="video-prediction-banner">
+                        <h1 id="video-prediction-label">UNKNOWN</h1>
+                    </div>
+
+                    <div class="probabilities-container">
+                        <div class="prob-row">
+                            <span>REAL Probability</span>
+                            <span id="video-prob-real-text">0%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div id="video-prob-real-bar" class="prob-bar prob-bar-real"></div>
+                        </div>
+
+                        <div class="prob-row">
+                            <span>DEEPFAKE Probability</span>
+                            <span id="video-prob-fake-text">0%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div id="video-prob-fake-bar" class="prob-bar prob-bar-fake"></div>
+                        </div>
+                    </div>
+
+                    <div class="meta-info">
+                        <p><strong>Model:</strong> <span id="video-meta-model">EfficientNet-B0</span></p>
+                        <p><strong>Threshold:</strong> <span id="video-meta-threshold">0.5</span></p>
+                        <p><strong>Video Duration:</strong> <span id="video-meta-duration">0s</span></p>
+                        <p><strong>Video FPS:</strong> <span id="video-meta-fps">0</span></p>
+                        <p><strong>Resolution:</strong> <span id="video-meta-resolution">-</span></p>
+                    </div>
+
+                    <div class="video-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="video-stat-total-frames">0</span>
+                            <span class="stat-label">Frames Extracted</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="video-stat-faces-found">0</span>
+                            <span class="stat-label">Frames with Faces</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="video-stat-fake-frames">0</span>
+                            <span class="stat-label">Fake Frames</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="video-stat-fake-ratio">0%</span>
+                            <span class="stat-label">Fake Ratio</span>
+                        </div>
+                    </div>
+                    
+                    <div id="video-warnings-container" class="warnings hidden"></div>
+                </div>
+
+                <!-- Frame-by-Frame Analysis Card -->
+                <div class="card">
+                    <h2>Frame-by-Frame Analysis</h2>
+                    <div class="explain-note">
+                        <p>Each row shows the deepfake probability for a sampled frame. Frames without a detectable face are marked accordingly.</p>
+                    </div>
+                    <div id="frame-results-container" class="frame-results-table-container">
+                        <table class="frame-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Frame</th>
+                                    <th>Time</th>
+                                    <th>Face</th>
+                                    <th>Deepfake %</th>
+                                    <th>Result</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody id="frame-results-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Configure Railway Backend API URL for Vercel deployment -->
+    <script>
+        // When deploying to Vercel, replace with your Railway URL: e.g. "https://your-service.up.railway.app"
+        // Leaving it as "" will use relative /api paths (works with Vercel rewrites in vercel.json or local testing)
+        window.API_BASE_URL = window.API_BASE_URL || "";
+    </script>
+    <script src="js/app.js"></script>
+</body>
+</html>
