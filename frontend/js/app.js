@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // API Base URL: defaults to empty string for same-origin requests (e.g. local or all-in-one Railway),
+    // API Base URL: defaults to empty string for same-origin requests (e.g. local or all-in-one Render),
     // or can be overridden via window.API_BASE_URL when frontend is hosted separately on Vercel.
     const API_BASE_URL = (window.API_BASE_URL || '').replace(/\/+$/, '');
 
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Health check failed:", error);
-            systemStatusMsg.textContent = "Could not connect to the server.";
+            systemStatusMsg.textContent = "Connecting to backend... (If using Render Free Tier, the service may take ~50s to wake up).";
             systemStatus.classList.remove('hidden');
         }
     }
