@@ -139,10 +139,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.detail || result.error || "An error occurred during analysis.");
+                let errorMsg = `Analysis failed (${response.status})`;
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.detail || errData.error || errorMsg;
+                } catch (_) {
+                    if (response.status === 504 || response.status === 502) {
+                        errorMsg = "Server processing timed out. If the service was sleeping, please retry.";
+                    } else {
+                        const raw = await response.text();
+                        if (raw) errorMsg = raw.slice(0, 150);
+                    }
+                }
+                throw new Error(errorMsg);
             }
+            const result = await response.json();
             displayImageResults(result);
         } catch (error) {
             console.error('Analysis error:', error);
@@ -286,15 +298,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            const result = await response.json();
 
             clearInterval(progressInterval);
             progressFill.style.width = '100%';
 
             if (!response.ok) {
-                throw new Error(result.detail || result.error || "An error occurred during video analysis.");
+                let errorMsg = `Video analysis failed (${response.status})`;
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.detail || errData.error || errorMsg;
+                } catch (_) {
+                    if (response.status === 504 || response.status === 502) {
+                        errorMsg = "Server processing timed out or ran out of memory. Please try a shorter video clip.";
+                    } else {
+                        const raw = await response.text();
+                        if (raw) errorMsg = raw.slice(0, 150);
+                    }
+                }
+                throw new Error(errorMsg);
             }
 
+            const result = await response.json();
             setTimeout(() => displayVideoResults(result), 300);
 
         } catch (error) {

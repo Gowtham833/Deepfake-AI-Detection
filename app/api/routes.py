@@ -1,3 +1,6 @@
+import os
+import shutil
+import tempfile
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -180,43 +183,53 @@ async def predict_video(
     file: UploadFile = File(...),
     config: AppConfig = Depends(get_app_config)
 ):
-    """Run deepfake detection on an uploaded video file."""
+    """Run deepfake detection on an uploaded video file with memory-safe disk streaming."""
     try:
         # Validate video file type
-        video_mime_types = ["video/mp4", "video/avi", "video/x-msvideo", "video/quicktime", 
-                           "video/x-matroska", "video/webm", "application/octet-stream"]
+        video_mime_types = [
+            "video/mp4", "video/avi", "video/x-msvideo", "video/quicktime", 
+            "video/x-matroska", "video/webm", "application/octet-stream"
+        ]
         if file.content_type not in video_mime_types:
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                 detail=f"Unsupported file type '{file.content_type}'. Please upload a video file (MP4, AVI, MOV, MKV, WEBM)."
             )
-        
-        # Read video bytes (limit to 100MB)
-        max_video_size = 100 * 1024 * 1024
-        contents = await file.read()
-        if len(contents) > max_video_size:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="Video file too large. Maximum size is 100MB."
-            )
-        
-        if not contents:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Uploaded file is empty."
-            )
-        
+
         video_service = VideoInferenceService()
-        
         if not video_service.is_ready:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Model is not loaded."
             )
-        
-        result = video_service.process_video(contents, max_frames=30, extraction_fps=1.0)
-        logger.info(f"[VIDEO PREDICTION] File: {file.filename} -> Verdict: {result.get('prediction')} | Real: {result.get('real_probability', 0)*100:.1f}% | Fake: {result.get('deepfake_probability', 0)*100:.1f}% | Frames Analyzed: {result.get('frames_analyzed')}")
-        return VideoPredictionResponse(**result)
+
+        # Stream directly to temporary file to avoid keeping large video files in RAM (critical for 512MB free tier)
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = tmp.name
+
+        try:
+            file_size = os.path.getsize(tmp_path)
+            if file_size == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Uploaded file is empty."
+                )
+            if file_size > 100 * 1024 * 1024:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail="Video file too large. Maximum size is 100MB."
+                )
+
+            result = video_service.process_video(tmp_path, max_frames=15, extraction_fps=1.0)
+            logger.info(f"[VIDEO PREDICTION] File: {file.filename} -> Verdict: {result.get('prediction')} | Real: {result.get('real_probability', 0)*100:.1f}% | Fake: {result.get('deepfake_probability', 0)*100:.1f}% | Frames Analyzed: {result.get('frames_analyzed')}")
+            return VideoPredictionResponse(**result)
+        finally:
+            if os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
         
     except HTTPException:
         raise
