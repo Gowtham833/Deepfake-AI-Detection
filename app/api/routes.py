@@ -221,7 +221,7 @@ async def predict_video(
                     detail="Video file too large. Maximum size is 100MB."
                 )
 
-            result = video_service.process_video(tmp_path, max_frames=15, extraction_fps=1.0)
+            result = video_service.process_video(tmp_path, max_frames=8, extraction_fps=1.0)
             logger.info(f"[VIDEO PREDICTION] File: {file.filename} -> Verdict: {result.get('prediction')} | Real: {result.get('real_probability', 0)*100:.1f}% | Fake: {result.get('deepfake_probability', 0)*100:.1f}% | Frames Analyzed: {result.get('frames_analyzed')}")
             return VideoPredictionResponse(**result)
         finally:
