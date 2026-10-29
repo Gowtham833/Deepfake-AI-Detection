@@ -436,4 +436,34 @@ document.addEventListener('DOMContentLoaded', () => {
             systemStatus.classList.remove('hidden');
         }
     }
+
+    // ==================== PWA INSTALL PROMPT ====================
+    let deferredPrompt = null;
+    const btnInstall = document.getElementById('btn-install-pwa');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (btnInstall) {
+            btnInstall.classList.remove('hidden');
+        }
+    });
+
+    if (btnInstall) {
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const choiceResult = await deferredPrompt.userChoice;
+            console.log('User install outcome:', choiceResult.outcome);
+            deferredPrompt = null;
+            btnInstall.classList.add('hidden');
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        console.log('Deepfake AI App installed as PWA!');
+        if (btnInstall) {
+            btnInstall.classList.add('hidden');
+        }
+    });
 });

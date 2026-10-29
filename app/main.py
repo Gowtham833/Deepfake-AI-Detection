@@ -60,9 +60,34 @@ def create_app() -> FastAPI:
 
     @app.get("/favicon.ico", include_in_schema=False)
     async def favicon():
-        """Suppress favicon 404 errors."""
+        """Serve app favicon."""
+        fav_path = os.path.join(static_dir, "icons", "favicon.png")
+        if os.path.exists(fav_path):
+            return FileResponse(fav_path, media_type="image/png")
         from fastapi.responses import Response
         return Response(status_code=204)
+
+    @app.get("/manifest.json", include_in_schema=False)
+    async def pwa_manifest():
+        """Serve PWA Web App Manifest for Android and browser installability."""
+        manifest_path = os.path.join(static_dir, "manifest.json")
+        if os.path.exists(manifest_path):
+            return FileResponse(manifest_path, media_type="application/manifest+json")
+        from fastapi.responses import Response
+        return Response(status_code=404)
+
+    @app.get("/sw.js", include_in_schema=False)
+    async def service_worker():
+        """Serve PWA Service Worker with root scope permissions."""
+        sw_path = os.path.join(static_dir, "sw.js")
+        if os.path.exists(sw_path):
+            return FileResponse(
+                sw_path,
+                media_type="application/javascript",
+                headers={"Service-Worker-Allowed": "/"}
+            )
+        from fastapi.responses import Response
+        return Response(status_code=404)
         
     @app.on_event("startup")
     async def startup_event():

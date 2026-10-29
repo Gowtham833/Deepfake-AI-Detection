@@ -47,6 +47,10 @@ data/sample_frames/
 *.jpg
 !static/**/*.png
 !static/**/*.jpg
+!app/static/**/*.png
+!app/static/**/*.svg
+!frontend/**/*.png
+!frontend/**/*.svg
 !docs/**/*.png
 !docs/**/*.jpg
 

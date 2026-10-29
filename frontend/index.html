@@ -4,13 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deepfake Detection System</title>
+    
+    <!-- PWA Manifest & Mobile Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Deepfake AI">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header class="app-header">
-        <div class="container">
-            <h1>Deepfake Detection System</h1>
-            <p class="subtitle">EfficientNet + Grad-CAM Explainability</p>
+        <div class="container header-container">
+            <div class="brand-wrapper">
+                <img src="logo.svg" alt="Deepfake AI Shield Logo" class="app-logo">
+                <div>
+                    <h1>Deepfake Detection System</h1>
+                    <p class="subtitle">EfficientNet + Grad-CAM Explainability</p>
+                </div>
+            </div>
+            <!-- In-App Install PWA Button (Android / Desktop) -->
+            <button id="btn-install-pwa" class="btn btn-install hidden" title="Install as Android App">
+                <span>📲</span> Install App
+            </button>
         </div>
     </header>
 
@@ -277,5 +297,16 @@
         window.API_BASE_URL = window.API_BASE_URL || "";
     </script>
     <script src="js/app.js"></script>
+
+    <!-- Register PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js', { scope: '/' })
+                    .then(reg => console.log('PWA ServiceWorker registered with scope:', reg.scope))
+                    .catch(err => console.error('PWA ServiceWorker registration failed:', err));
+            });
+        }
+    </script>
 </body>
 </html>
