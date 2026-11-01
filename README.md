@@ -1,3 +1,13 @@
+---
+title: Deepfake AI Detection Platform
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Deepfake AI Detection & Video Analysis Platform
 
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.13-3776AB.svg?logo=python&logoColor=white)](https://python.org)
