@@ -1,5 +1,6 @@
 import os
 import io
+import gc
 import cv2
 import torch
 import numpy as np
@@ -111,6 +112,14 @@ class InferenceService:
             if img is None:
                 raise ValueError("Could not decode image")
                 
+            # Memory safeguard: Downscale huge phone/camera images (e.g. 4K/12MP) to max 1024px
+            # This prevents MTCNN from building massive image pyramids that exceed memory limits
+            h, w = img.shape[:2]
+            max_dim = max(h, w)
+            if max_dim > 1024:
+                scale = 1024.0 / max_dim
+                img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+
             # Convert to RGB
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             pil_img = Image.fromarray(img_rgb)
@@ -242,22 +251,28 @@ class InferenceService:
             
             # Generate explanation
             if self.gradcam_service.available:
-                input_tensor.requires_grad = True
-                
-                # Make sure parameters require gradients for Grad-CAM
-                for param in self.model.parameters():
-                    param.requires_grad = True
+                try:
+                    input_tensor.requires_grad = True
+                    for param in self.model.parameters():
+                        param.requires_grad = True
+                        
+                    explanation = self.gradcam_service.generate_explanation(
+                        self.model, input_tensor, face_np, {}, self.device
+                    )
                     
-                explanation = self.gradcam_service.generate_explanation(
-                    self.model, input_tensor, face_np, {}, self.device
-                )
-                
-                if not explanation.get("error"):
-                    pred_data["gradcam_heatmap"] = explanation["heatmap"]
-                    pred_data["gradcam_overlay"] = explanation["overlay"]
-                    pred_data["explanation_available"] = True
-                else:
-                    pred_data["warnings"].append(f"Grad-CAM failed: {explanation.get('error')}")
+                    if not explanation.get("error"):
+                        pred_data["gradcam_heatmap"] = explanation["heatmap"]
+                        pred_data["gradcam_overlay"] = explanation["overlay"]
+                        pred_data["explanation_available"] = True
+                    else:
+                        pred_data["warnings"].append(f"Grad-CAM failed: {explanation.get('error')}")
+                finally:
+                    # Clean up gradients to prevent memory accumulation across requests
+                    for param in self.model.parameters():
+                        param.requires_grad = False
+                    self.model.zero_grad(set_to_none=True)
+                    del input_tensor
+                    gc.collect()
             else:
                 pred_data["warnings"].append("Grad-CAM service is not available.")
                 

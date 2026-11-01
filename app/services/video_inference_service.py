@@ -28,7 +28,7 @@ class VideoInferenceService:
     def process_video(
         self, 
         video_input: Union[bytes, str], 
-        max_frames: int = 8, 
+        max_frames: int = 5, 
         extraction_fps: float = 1.0
     ) -> dict:
         """

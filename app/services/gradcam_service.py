@@ -49,6 +49,7 @@ class GradCAMService:
         if not self.available or input_tensor is None:
             return {"heatmap": None, "overlay": None, "error": "Grad-CAM not available or invalid input"}
             
+        gradcam = None
         try:
             # Directly use the last EfficientNet feature block — correct Grad-CAM target layer
             if hasattr(model, 'features'):
@@ -86,3 +87,6 @@ class GradCAMService:
             import traceback
             traceback.print_exc()
             return {"heatmap": None, "overlay": None, "error": str(e)}
+        finally:
+            if gradcam is not None:
+                gradcam.remove_hooks()

@@ -73,7 +73,7 @@ class GradCAM:
         if target_class == 0:
             score = -score
             
-        score.backward(retain_graph=True)
+        score.backward(retain_graph=False)
         
         if self.gradients is None or self.activations is None:
             raise ValueError("Forward/backward hooks did not capture activations/gradients.")
@@ -93,7 +93,10 @@ class GradCAM:
         if cam_max - cam_min > 1e-8:
             cam = (cam - cam_min) / (cam_max - cam_min)
             
-        return cam.cpu().numpy()
+        result = cam.detach().cpu().numpy()
+        self.gradients = None
+        self.activations = None
+        return result
 
 def apply_colormap(heatmap: np.ndarray, colormap: int = cv2.COLORMAP_JET) -> np.ndarray:
     """
